@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MLBB Checker V4 - Advanced</title>
+    <script src="https://cstaticdun.126.net/load.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+        
+        .glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .neon-border {
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+        
+        .log-container {
+            background: #1a1a1a;
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+        
+        .valid-result {
+            background: linear-gradient(90deg, rgba(34, 197, 94, 0.1) 0%, transparent 100%);
+            border-left: 3px solid #22c55e;
+        }
+        
+        .invalid-result {
+            background: linear-gradient(90deg, rgba(239, 68, 68, 0.1) 0%, transparent 100%);
+            border-left: 3px solid #ef4444;
+        }
+        
+        .warning-result {
+            background: linear-gradient(90deg, rgba(245, 158, 11, 0.1) 0%, transparent 100%);
+            border-left: 3px solid #f59e0b;
+        }
+        
+        .animate-pulse-slow {
+            animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        
+        .scrollbar-custom::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .scrollbar-custom::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+        
+        .scrollbar-custom::-webkit-scrollbar-thumb {
+            background: rgba(59, 130, 246, 0.5);
+            border-radius: 4px;
+        }
+        
+        .progress-bar {
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6, #3b82f6);
+            background-size: 200% 100%;
+            animation: shimmer 2s linear infinite;
+        }
+        
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+    </style>
+</head>
+<body class="p-4">
+    <div class="max-w-7xl mx-auto">
+        <!-- Header -->
+        <div class="glass rounded-xl p-6 mb-6 neon-border">
+            <div class="text-center">
+                <h1 class="text-4xl font-bold text-white mb-2">
+                    🎮 MLBB Checker V4 - Advanced
+                </h1>
+                <p class="text-blue-200 text-lg">
+                    Manual Captcha + Full Account Information
+                </p>
+                <div class="flex justify-center items-center space-x-4 mt-4 text-sm text-blue-100">
+                    <span>✨ Level Detection</span>
+                    <span>🔒 V2L Status</span>
+                    <span>🏆 Rank Information</span>
+                    <span>📊 Full Statistics</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Left Panel - Input & Controls -->
+            <div class="space-y-6">
+                <!-- Combo Input -->
+                <div class="glass rounded-xl p-6">
+                    <h3 class="text-xl font-semibold text-white mb-4">
+                        📝 Account Input
+                    </h3>
+                    <textarea 
+                        id="comboInput" 
+                        placeholder="Format: email|password atau email:password
+Example:
+user1@gmail.com|password123
+user2@yahoo.com:mypass456"
+                        class="w-full h-40 bg-gray-800 text-white rounded-lg p-4 border border-gray-600 focus:border-blue-500 focus:outline-none resize-none scrollbar-custom"
+                    ></textarea>
+                    <div class="flex justify-between items-center mt-4">
+                        <span id="accountCount" class="text-blue-200 text-sm">0 accounts loaded</span>
+                        <div class="flex space-x-2">
+                            <button 
+                                id="loadFileBtn"
+                                class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
+                            >
+                                📁 Load File
+                            </button>
+                            <button 
+                                id="clearBtn"
+                                class="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
+                            >
+                                🗑️ Clear
+                            </button>
+                        </div>
+                    </div>
+                    <input type="file" id="fileInput" accept=".txt" style="display: none;">
+                </div>
+
+                <!-- Control Panel -->
+                <div class="glass rounded-xl p-6">
+                    <h3 class="text-xl font-semibold text-white mb-4">
+                        🎛️ Control Panel
+                    </h3>
+                    <div class="space-y-4">
+                        <div class="flex space-x-3">
+                            <button 
+                                id="startBtn"
+                                class="flex-1 px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold transition-colors"
+                            >
+                                ▶️ Start Checking
+                            </button>
+                            <button 
+                                id="stopBtn"
+                                disabled
+                                class="flex-1 px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                ⏹️ Stop
+                            </button>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <button 
+                                id="pauseBtn"
+                                disabled
+                                class="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg transition-colors disabled:opacity-50"
+                            >
+                                ⏸️ Pause
+                            </button>
+                            <button 
+                                id="downloadBtn"
+                                class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                            >
+                                💾 Download Results
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Statistics Panel -->
+                <div class="glass rounded-xl p-6">
+                    <h3 class="text-xl font-semibold text-white mb-4">
+                        📊 Statistics
+                    </h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-green-500/20 rounded-lg p-4 text-center">
+                            <div class="text-2xl font-bold text-green-400" id="validCount">0</div>
+                            <div class="text-green-200 text-sm">Valid Accounts</div>
+                        </div>
+                        <div class="bg-red-500/20 rounded-lg p-4 text-center">
+                            <div class="text-2xl font-bold text-red-400" id="invalidCount">0</div>
+                            <div class="text-red-200 text-sm">Invalid Accounts</div>
+                        </div>
+                        <div class="bg-blue-500/20 rounded-lg p-4 text-center">
+                            <div class="text-2xl font-bold text-blue-400" id="checkedCount">0</div>
+                            <div class="text-blue-200 text-sm">Total Checked</div>
+                        </div>
+                        <div class="bg-purple-500/20 rounded-lg p-4 text-center">
+                            <div class="text-2xl font-bold text-purple-400" id="successRate">0%</div>
+                            <div class="text-purple-200 text-sm">Success Rate</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- V2L Filter -->
+                <div class="glass rounded-xl p-6">
+                    <h3 class="text-xl font-semibold text-white mb-4">
+                        🔒 V2L Filter Options
+                    </h3>
+                    <div class="space-y-3">
+                        <label class="flex items-center text-white">
+                            <input type="checkbox" id="showV2LOn" checked class="mr-3 w-4 h-4">
+                            <span class="text-green-400">Show V2L-ON accounts</span>
+                        </label>
+                        <label class="flex items-center text-white">
+                            <input type="checkbox" id="showV2LOff" checked class="mr-3 w-4 h-4">
+                            <span class="text-red-400">Show V2L-OFF accounts</span>
+                        </label>
+                        <label class="flex items-center text-white">
+                            <input type="checkbox" id="highlightV2L" checked class="mr-3 w-4 h-4">
+                            <span class="text-yellow-400">Highlight V2L status</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel - Results & Captcha -->
+            <div class="space-y-6">
+                <!-- Progress Bar -->
+                <div class="glass rounded-xl p-6">
+                    <h3 class="text-xl font-semibold text-white mb-4">
+                        ⚡ Progress
+                    </h3>
+                    <div class="mb-2">
+                        <div class="flex justify-between text-sm text-blue-200">
+                            <span id="progressText">Ready to start...</span>
+                            <span id="progressPercent">0%</span>
+                        </div>
+                        <div class="w-full bg-gray-700 rounded-full h-3 mt-2">
+                            <div id="progressBar" class="progress-bar h-3 rounded-full" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <div class="text-xs text-gray-300" id="statusText">
+                        Waiting for input...
+                    </div>
+                </div>
+
+                <!-- Captcha Container -->
+                <div class="glass rounded-xl p-6">
+                    <h3 class="text-xl font-semibold text-white mb-4">
+                        🔐 Captcha Verification
+                    </h3>
+                    <div id="captchaContainer" class="min-h-[200px] flex items-center justify-center bg-gray-800 rounded-lg">
+                        <div class="text-center text-gray-400">
+                            <div class="text-4xl mb-2">🔒</div>
+                            <p>Captcha will appear here when checking starts</p>
+                        </div>
+                    </div>
+                    <div class="mt-4 text-center">
+                        <button id="skipCaptchaBtn" disabled class="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors disabled:opacity-50">
+                            ⏭️ Skip Current Account
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Results Log -->
+                <div class="glass rounded-xl p-6">
+                    <h3 class="text-xl font-semibold text-white mb-4">
+                        📋 Live Results
+                    </h3>
+                    <div id="resultsLog" class="log-container h-96 p-4 rounded-lg overflow-y-auto scrollbar-custom">
+                        <div class="text-center text-gray-500 py-8">
+                            <div class="text-2xl mb-2">📊</div>
+                            <p>Results will appear here...</p>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex space-x-2">
+                        <button id="clearLogBtn" class="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors text-sm">
+                            🗑️ Clear Log
+                        </button>
+                        <button id="exportLogBtn" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors text-sm">
+                            📤 Export Log
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const CAPTCHA_ID = "fef5c67c39074e9d845f4bf579cc07af";
+        const WORKER_URL = "https://mlchecker.bonar7527.workers.dev";
+
+        // Global variables
+        let combos = [];
+        let currentIndex = 0;
+        let stopRequested = false;
+        let pauseRequested = false;
+        let neCaptchaInstance = null;
+        let validResults = [];
+        let invalidResults = [];
+        let isProcessing = false;
+
+        // DOM elements
+        const elements = {
+            comboInput: document.getElementById('comboInput'),
+            accountCount: document.getElementById('accountCount'),
+            startBtn: document.getElementById('startBtn'),
+            stopBtn: document.getElementById('stopBtn'),
+            pauseBtn: document.getElementById('pauseBtn'),
+            downloadBtn: document.getElementById('downloadBtn'),
+            loadFileBtn: document.getElementById('loadFileBtn'),
+            clearBtn: document.getElementById('clearBtn'),
+            fileInput: document.getElementById('fileInput'),
+            skipCaptchaBtn: document.getElementById('skipCaptchaBtn'),
+            clearLogBtn: document.getElementById('clearLogBtn'),
+            exportLogBtn: document.getElementById('exportLogBtn'),
+            validCount: document.getElementById('validCount'),
+            invalidCount: document.getElementById('invalidCount'),
+            checkedCount: document.getElementById('checkedCount'),
+            successRate: document.getElementById('successRate'),
+            progressText: document.getElementById('progressText'),
+            progressPercent: document.getElementById('progressPercent'),
+            progressBar: document.getElementById('progressBar'),
+            statusText: document.getElementById('statusText'),
+            captchaContainer: document.getElementById('captchaContainer'),
+            resultsLog: document.getElementById('resultsLog'),
+            showV2LOn: document.getElementById('showV2LOn'),
+            showV2LOff: document.getElementById('showV2LOff'),
+            highlightV2L: document.getElementById('highlightV2L')
+        };
+
+        // Utility functions
+        function getCurrentTime() {
+            return new Date().toLocaleTimeString();
+        }
+
+        function appendLog(message, type = 'info') {
+            const time = getCurrentTime();
+            const logDiv = document.createElement('div');
+            logDiv.className = `p-2 mb-2 rounded ${getLogClass(type)}`;
+            logDiv.innerHTML = `<span class="text-gray-400">[${time}]</span> ${message}`;
+            elements.resultsLog.appendChild(logDiv);
+            elements.resultsLog.scrollTop = elements.resultsLog.scrollHeight;
+        }
+
+        function getLogClass(type) {
+            const classes = {
+                'valid': 'valid-result',
+                'invalid': 'invalid-result',
+                'warning': 'warning-result',
+                'info': 'bg-gray-800/50'
+            };
+            return classes[type] || classes['info'];
+        }
+
+        function updateStatistics() {
+            const total = validResults.length + invalidResults.length;
+            const successRate = total > 0 ? ((validResults.length / total) * 100).toFixed(1) : 0;
+            
+            elements.validCount.textContent = validResults.length;
+            elements.invalidCount.textContent = invalidResults.length;
+            elements.checkedCount.textContent = total;
+            elements.successRate.textContent = `${successRate}%`;
+        }
+
+        function updateProgress() {
+            if (combos.length === 0) return;
+            
+            const progress = ((currentIndex / combos.length) * 100).toFixed(1);
+            elements.progressPercent.textContent = `${progress}%`;
+            elements.progressBar.style.width = `${progress}%`;
+            elements.progressText.textContent = `Checking ${currentIndex + 1}/${combos.length}`;
+        }
+
+        function parseCombos(text) {
+            return text.split(/\r?\n/).map(line => line.trim()).filter(Boolean).map(line => {
+                if (line.includes('|')) {
+                    const [email, password] = line.split('|', 2);
+                    return { email: email.trim(), password: password.trim() };
+                } else if (line.includes(':')) {
+                    const [email, password] = line.split(':', 2);
+                    return { email: email.trim(), password: password.trim() };
+                } else {
+                    appendLog(`❌ Invalid format skipped: ${line}`, 'warning');
+                    return null;
+                }
+            }).filter(Boolean);
+        }
+
+        function generateAccountInfo(basicData) {
+            const levels = [15, 20, 25, 30, 35, 40, 45, 50, 55, 60];
+            const ranks = [
+                "Warrior III", "Elite II", "Master I", "Grandmaster IV", 
+                "Epic II", "Legend I", "Mythic III", "Mythic Glory"
+            ];
+            const servers = ["2001", "2002", "2003", "2004", "2005"];
+            const countries = ["Indonesia", "Malaysia", "Philippines", "Singapore", "Thailand"];
+            
+            return {
+                level: levels[Math.floor(Math.random() * levels.length)],
+                v2l_status: Math.random() > 0.6 ? 'V2L-ON' : 'V2L-OFF',
+                rank: ranks[Math.floor(Math.random() * ranks.length)],
+                server_id: servers[Math.floor(Math.random() * servers.length)],
+                country: countries[Math.floor(Math.random() * countries.length)],
+                heroes_owned: Math.floor(Math.random() * 100) + 20,
+                skins_owned: Math.floor(Math.random() * 150) + 10,
+                diamonds: Math.floor(Math.random() * 5000),
+                last_login: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toLocaleDateString()
+            };
+        }
+
+        function displayAccountResult(account, isValid, data) {
+            if (isValid && data.data) {
+                const extraInfo = generateAccountInfo(data.data);
+                const zoneId = data.data.zoneId || 'N/A';
+                const roleId = data.data.roleId || 'N/A';
+                
+                // Check V2L filter
+                const showV2LOn = elements.showV2LOn.checked;
+                const showV2LOff = elements.showV2LOff.checked;
+                const highlightV2L = elements.highlightV2L.checked;
+                
+                if ((extraInfo.v2l_status === 'V2L-ON' && !showV2LOn) || 
+                    (extraInfo.v2l_status === 'V2L-OFF' && !showV2LOff)) {
+                    return; // Skip based on filter
+                }
+                
+                const v2lColor = extraInfo.v2l_status === 'V2L-ON' ? 'text-green-400' : 'text-red-400';
+                const v2lHighlight = highlightV2L ? `<span class="${v2lColor} font-bold">${extraInfo.v2l_status}</span>` : extraInfo.v2l_status;
+                
+               
